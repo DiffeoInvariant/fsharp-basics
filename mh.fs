@@ -33,33 +33,33 @@ let NormalPDF mu std x =
 
 
 type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double) =
-    member x.pi = target 
-    member x.qpdf = NormalPDF q_mu q_sd
-    member x.gen = new Random()
-    member x.qmu = q_mu 
-    member x.qstd = q_sd
+    member this.pi = target 
+    member this.qpdf = NormalPDF q_mu q_sd
+    member this.gen = new Random()
+    member this.qmu = q_mu 
+    member this.qstd = q_sd
 
-    member x.Sample() = 
+    member this.Sample() = 
         let mutable accepted = false
-        let mutable accept_prob = x.gen.NextDouble() 
-        let mutable u1 = x.gen.NextDouble() 
-        let mutable u2 = x.gen.NextDouble()  
+        let mutable accept_prob = this.gen.NextDouble() 
+        let mutable u1 = this.gen.NextDouble() 
+        let mutable u2 = this.gen.NextDouble()  
         let step curr cand ui = 
-            let alpha = IndependentMHRatio x.pi x.qpdf curr cand 
+            let alpha = IndependentMHRatio this.pi this.qpdf curr cand 
             if ui < alpha then
                 (cand, true)
             else 
                 (curr, false)
-        let mutable curr = x.qmu 
+        let mutable curr = this.qmu 
         while not accepted do
-            let q1, q2 = BoxMullerTransform u1 u2 x.qmu x.qstd 
-            let U_i = x.gen.NextDouble()
+            let q1, q2 = BoxMullerTransform u1 u2 this.qmu this.qstd 
+            let U_i = this.gen.NextDouble()
             // we get two candidate samples at a time, so we should try another step if the first fails
             let state, accept_this = step curr q1 U_i 
             curr <- state 
             accepted <- accept_this 
-            u1 <- x.gen.NextDouble()
-            u2 <- x.gen.NextDouble()
+            u1 <- this.gen.NextDouble()
+            u2 <- this.gen.NextDouble()
 
         curr 
 
@@ -78,3 +78,4 @@ let main args =
     mu <- mu / (double(n))
     System.Console.WriteLine("The sample mean is {0:f9}", mu)
     0
+    
