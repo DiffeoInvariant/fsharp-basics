@@ -33,12 +33,14 @@ let NormalPDF mu std x =
 
 
 type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double) =
+    let mutable curr_sample = q_mu  
+    
     member this.pi = target 
     member this.qpdf = NormalPDF q_mu q_sd
     member this.gen = new Random()
     member this.qmu = q_mu 
     member this.qstd = q_sd
-    let mutable curr_sample = q_mu 
+    
 
     member this.Sample() = 
         let mutable accepted = false
@@ -70,7 +72,7 @@ let main args =
     let mu_t = try double <| args.[0] with _ -> -0.5
     let target = NormalPDF mu_t 1.0
     let mu_q = try double <| args.[2] with _ -> 1.0
-    let sampler = IndependentNormalMHSampler(target, mu_q, 5.0)
+    let sampler = new IndependentNormalMHSampler(target, mu_q, 5.0)
     let mutable mu = 0.0
     let n = try int <| args.[1] with _ -> 100
     for i in 0 .. n do
