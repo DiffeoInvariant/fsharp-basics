@@ -38,10 +38,10 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
     member this.gen = new Random()
     member this.qmu = q_mu 
     member this.qstd = q_sd
+    let mutable curr_sample = q_mu 
 
     member this.Sample() = 
         let mutable accepted = false
-        let mutable accept_prob = this.gen.NextDouble() 
         let mutable u1 = this.gen.NextDouble() 
         let mutable u2 = this.gen.NextDouble()  
         let step curr cand ui = 
@@ -50,7 +50,7 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
                 (cand, true)
             else 
                 (curr, false)
-        let mutable curr = this.qmu 
+        let mutable curr = curr_sample
         while not accepted do
             let q1, q2 = BoxMullerTransform u1 u2 this.qmu this.qstd 
             let U_i = this.gen.NextDouble()
@@ -61,6 +61,7 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
             u1 <- this.gen.NextDouble()
             u2 <- this.gen.NextDouble()
 
+        curr_sample <- curr
         curr 
 
 
@@ -68,7 +69,8 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
 let main args = 
     let mu_t = try double <| args.[0] with _ -> -0.5
     let target = NormalPDF mu_t 1.0
-    let sampler = IndependentNormalMHSampler(target, 1.0, 5.0)
+    let mu_q = try double <| args.[2] with _ -> 1.0
+    let sampler = IndependentNormalMHSampler(target, mu_q, 5.0)
     let mutable mu = 0.0
     let n = try int <| args.[1] with _ -> 100
     for i in 0 .. n do
@@ -78,4 +80,3 @@ let main args =
     mu <- mu / (double(n))
     System.Console.WriteLine("The sample mean is {0:f9}", mu)
     0
-    
