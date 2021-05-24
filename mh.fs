@@ -1,3 +1,4 @@
+open Argu 
 open System 
 
 type Univariate1D = double -> double
@@ -34,7 +35,7 @@ let NormalPDF mu std x =
 
 type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double) =
     let mutable curr_sample = q_mu  
-    
+
     member this.pi = target 
     member this.qpdf = NormalPDF q_mu q_sd
     member this.gen = new Random()
@@ -66,16 +67,102 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
         curr_sample <- curr
         curr 
 
+(*
+let rec parseArgs args existing_options = 
+    match args with 
+    | [] -> 
+        existing_options
+
+    | "--target-mean"::xs ->
+        match xs with 
+        | x::xxs ->
+            match x with 
+            | :? double as x -> 
+                let options = {existing_options with mu_t = x}
+                parseArgs xxs options
+            | _ ->
+                failwith "--target-mean argument must be convertible to double!"
+        | _ ->
+                failwith "--target-mean argument must be convertible to double!"
+
+    | "--candidate-mean"::xs ->
+        match xs with 
+        | x::xxs -> 
+            match x with 
+            | :? double as x ->
+                let options = {existing_options with mu_q = x}
+                parseArgs xxs options
+            | _ ->
+                failwith "--candidate-mean argument must be convertible to double!"
+        | _ ->
+            failwith "--candidate-mean argument must be convertible to double!"
+
+    | "--samples"::xs ->
+        match xs with 
+        | x::xxs  ->
+            match x with 
+            | :? int as n ->
+                let options = {existing_options with n = x}
+                parseArgs xxs options 
+            | _ ->
+                failwith "--samples argument must be convertible to int!"
+        | _ ->
+            failwith "--samples argument must be convertible to int!"
+    
+    | "--burn-in"::xs ->
+        match xs with 
+        | x::xxs ->
+            match x with 
+            | :? int as b ->
+                let options = {existing_options with b = x}
+                parseArgs xxs options 
+            | _ ->
+                failwith "--burn-in argument must be convertible to int!"   
+        | _ ->
+            failwith "--burn-in argument must be convertible to int!"
+     
+    | x::xs ->
+        eprintfn "Unrecognized option '%s'" x 
+        parseArgs xs existing_options
+*)
+
+type CliArgs = 
+    | Target_Mean of mu_t:double
+    | Candidate_Mean of mu_q:double 
+    | Samples of n:int 
+    | Burn_In of b:int
+
+    interface IArgParserTemplate with 
+        member this.Usage = 
+            match this with 
+            | Target_Mean _ -> "Target mean."
+            | Candidate_Mean _ -> "Independent Normal andidate mean."
+            | Samples _ -> "How many samples?"
+            | Burn_In _ -> "How many burn-in samples?"
+
 
 [<EntryPoint>]
 let main args = 
-    let mu_t = try double <| args.[0] with _ -> -0.5
-    let target = NormalPDF mu_t 1.0
-    let mu_q = try double <| args.[2] with _ -> 1.0
-    let sampler = new IndependentNormalMHSampler(target, mu_q, 5.0)
+    //let mu_t = try double <| args.[0] with _ -> -0.5
+    //let target = NormalPDF mu_t 1.0
+    //let mu_q = try double <| args.[1] with _ -> 1.0
+    let defaults = {
+        mu_t = -0.5;
+        mu_q = 1.0;
+        n = 100;
+        b = 100;
+    }
+    let parser = ArgumentParser.Create<CliArgs>(programName="mh.exe")
+    let options = parser.Parse args  
+    let target = NormalPDF (options.GetResult (Target_Mean, defaultValue=-0.5)) 1.0
+    let sampler = new IndependentNormalMHSampler(target, (options.GetResult (Candidate_Mean, defaultValue=1.0)), 5.0)
     let mutable mu = 0.0
-    let n = try int <| args.[1] with _ -> 100
-    for i in 0 .. n do
+    //let n = try int <| args.[2] with _ -> 100
+    //let b = try int <| args.[3] with _ -> 100
+    for i in 0 .. (options.GetResult (Burn_In, defaultValue=100)) do
+        ignore <| sampler.Sample() 
+
+    for i in 0 .. (options.GetResult (Samples, defaultValue=100)) do
         let sample = sampler.Sample()
         mu <- mu + sample 
 

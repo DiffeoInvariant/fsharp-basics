@@ -67,65 +67,6 @@ type IndependentNormalMHSampler(target: Univariate1D, q_mu: double, q_sd: double
         curr_sample <- curr
         curr 
 
-(*
-let rec parseArgs args existing_options = 
-    match args with 
-    | [] -> 
-        existing_options
-
-    | "--target-mean"::xs ->
-        match xs with 
-        | x::xxs ->
-            match x with 
-            | :? double as x -> 
-                let options = {existing_options with mu_t = x}
-                parseArgs xxs options
-            | _ ->
-                failwith "--target-mean argument must be convertible to double!"
-        | _ ->
-                failwith "--target-mean argument must be convertible to double!"
-
-    | "--candidate-mean"::xs ->
-        match xs with 
-        | x::xxs -> 
-            match x with 
-            | :? double as x ->
-                let options = {existing_options with mu_q = x}
-                parseArgs xxs options
-            | _ ->
-                failwith "--candidate-mean argument must be convertible to double!"
-        | _ ->
-            failwith "--candidate-mean argument must be convertible to double!"
-
-    | "--samples"::xs ->
-        match xs with 
-        | x::xxs  ->
-            match x with 
-            | :? int as n ->
-                let options = {existing_options with n = x}
-                parseArgs xxs options 
-            | _ ->
-                failwith "--samples argument must be convertible to int!"
-        | _ ->
-            failwith "--samples argument must be convertible to int!"
-    
-    | "--burn-in"::xs ->
-        match xs with 
-        | x::xxs ->
-            match x with 
-            | :? int as b ->
-                let options = {existing_options with b = x}
-                parseArgs xxs options 
-            | _ ->
-                failwith "--burn-in argument must be convertible to int!"   
-        | _ ->
-            failwith "--burn-in argument must be convertible to int!"
-     
-    | x::xs ->
-        eprintfn "Unrecognized option '%s'" x 
-        parseArgs xs existing_options
-*)
-
 type CliArgs = 
     | Target_Mean of mu_t:double
     | Candidate_Mean of mu_q:double 
