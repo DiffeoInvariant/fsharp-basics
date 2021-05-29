@@ -50,6 +50,8 @@ let main argv =
     let nstates = options.GetResult (Nstates, defaultValue=50)
     let initial_states = [| for i in 0 .. nstates -> (double i)/ (double nstates)|]
     let hypothesis = (r - 1.0) / r
+    let hypothesis_2 = (r * r - 1.0) / (r ** 3.0)
     let estimate = MapAverage1DCumulative LogisticMap r (int niter) (int ndiscard) initial_states
+    printfn "Hypothesis (r^2 - 1) / r^3 is %g" hypothesis_2
     printfn "Hypothesis is average value is %g; estimate from %i initial states, %i iterations (plus %i discarded) per state: %g" hypothesis initial_states.Length niter ndiscard estimate
     0 
